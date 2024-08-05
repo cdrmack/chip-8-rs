@@ -1,4 +1,10 @@
-struct chip8 {
+use raylib::prelude::*;
+
+const WIDTH: i32 = 64;
+const HEIGHT: i32 = 32;
+const MULTIPLAYER: i32 = 10;
+
+struct Chip8 {
     memory: [i8; 4096],
     data_registers: [i8; 16],
     index_register: i16,
@@ -7,12 +13,14 @@ struct chip8 {
     keyboard: [i8; 16],
 }
 
-impl chip8 {
-    fn tick(&mut self) {
-        // TODO: fetch, decode, execute
-    }
-}
-
 fn main() {
-    println!("Hello, world!");
+    let (mut rl, thread) = raylib::init()
+        .size(WIDTH * MULTIPLAYER, HEIGHT * MULTIPLAYER)
+        .title("CHIP-8")
+        .build();
+
+    while !rl.window_should_close() {
+        let mut d = rl.begin_drawing(&thread);
+        d.clear_background(Color::WHITE);
+    }
 }
