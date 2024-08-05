@@ -1,15 +1,42 @@
 use raylib::prelude::*;
 
+const PIXEL_SIZE: usize = 10;
+
 mod chip8;
 
+fn draw(chip: &chip8::Chip8, renderer: &mut RaylibDrawHandle) {
+    for (i, val) in chip.get_vram().iter().enumerate() {
+        let color = if *val == true {
+            Color::WHITE
+        } else {
+            Color::BLACK
+        };
+
+        renderer.draw_rectangle(
+            (i % chip8::WIDTH * PIXEL_SIZE) as i32,
+            (i / chip8::WIDTH * PIXEL_SIZE) as i32,
+            PIXEL_SIZE as i32,
+            PIXEL_SIZE as i32,
+            color,
+        );
+    }
+}
+
 fn main() {
-    let (mut rl, thread) = raylib::init()
-        .size(chip8::WIDTH as i32 * 20, chip8::HEIGHT as i32 * 20)
-        .title("CHIP-8")
+    let (mut rl_handle, thread) = raylib::init()
+        .size(
+            (chip8::WIDTH * PIXEL_SIZE) as i32,
+            (chip8::HEIGHT * PIXEL_SIZE) as i32,
+        )
+        .title("CHIP-8-rs")
         .build();
 
-    while !rl.window_should_close() {
-        let mut d = rl.begin_drawing(&thread);
-        d.clear_background(Color::WHITE);
+    let mut chip = chip8::Chip8::new();
+
+    while !rl_handle.window_should_close() {
+        let mut draw_handle = rl_handle.begin_drawing(&thread);
+        draw_handle.clear_background(Color::BLACK);
+        chip.tick();
+        draw(&chip, &mut draw_handle);
     }
 }

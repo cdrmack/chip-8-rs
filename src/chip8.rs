@@ -3,19 +3,23 @@ pub const HEIGHT: usize = 32;
 const RAM: usize = 4096;
 const VRAM: usize = WIDTH * HEIGHT;
 
-struct Chip8 {
+pub struct Chip8 {
     ram: [u8; RAM],
     vram: [bool; VRAM],
     pc: usize,
 }
 
 impl Chip8 {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Chip8 {
             ram: [0; RAM], // [0x000..0x1FF] is reserved
             vram: [false; VRAM],
             pc: 0x200,
         }
+    }
+
+    pub fn get_vram(&self) -> &[bool; VRAM] {
+        &self.vram
     }
 
     fn fetch(&self) -> u16 {
@@ -28,7 +32,7 @@ impl Chip8 {
         first | second
     }
 
-    fn tick(&mut self) {
+    pub fn tick(&mut self) {
         let _opcode = self.fetch();
         // TODO: decode
         // TODO: execute
