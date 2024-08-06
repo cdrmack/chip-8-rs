@@ -6,11 +6,7 @@ mod chip8;
 
 fn draw(chip: &chip8::Chip8, renderer: &mut RaylibDrawHandle) {
     for (i, val) in chip.get_vram().iter().enumerate() {
-        let color = if *val == true {
-            Color::WHITE
-        } else {
-            Color::BLACK
-        };
+        let color = if *val { Color::WHITE } else { Color::BLACK };
 
         renderer.draw_rectangle(
             (i % chip8::WIDTH * PIXEL_SIZE) as i32,
