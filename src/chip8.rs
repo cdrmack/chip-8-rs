@@ -2,11 +2,13 @@ pub const WIDTH: usize = 64;
 pub const HEIGHT: usize = 32;
 const RAM_SIZE: usize = 4096;
 const VRAM_SIZE: usize = WIDTH * HEIGHT;
+const NUMBER_OF_REGISTERS: usize = 16;
 
 pub struct Chip8 {
     ram: [u8; RAM_SIZE],
     vram: [bool; VRAM_SIZE],
     pc: usize,
+    registers: [u8; NUMBER_OF_REGISTERS], // V0, V1, ..., VF
 }
 
 impl Chip8 {
@@ -15,6 +17,7 @@ impl Chip8 {
             ram: [0; RAM_SIZE],
             vram: [false; VRAM_SIZE],
             pc: 0x200,
+            registers: [0; NUMBER_OF_REGISTERS],
         }
     }
 
@@ -48,7 +51,9 @@ impl Chip8 {
                 self.pc = (opcode & 0x0FFF) as usize;
             }
             (0x6, _, _, _) => {
-                // TODO: set register VX
+                let register_number = ((opcode & 0x0F00) >> 8) as u8;
+                let value: u8 = (opcode & 0x00FF) as u8;
+                self.registers[register_number as usize] = value;
             }
             (0x7, _, _, _) => {
                 // TODO: add value to register VX
@@ -108,9 +113,19 @@ mod tests {
     #[test]
     fn test_1nnn_should_jump() {
         let mut chip = Chip8::new();
-        assert_eq!(chip.pc, 0x200);
+        assert_eq!(0x200, chip.pc);
 
         chip.decode(0x142C); // 0x1NNN
         assert_eq!(0x42C as usize, chip.pc);
+    }
+
+    #[test]
+    fn test_6xnn_should_store_number_in_register_x() {
+        let mut chip = Chip8::new();
+        let register_number = 8;
+        assert_eq!(0, chip.registers[register_number]);
+
+        chip.decode(0x6842);
+        assert_eq!(0x42, chip.registers[register_number]);
     }
 }
