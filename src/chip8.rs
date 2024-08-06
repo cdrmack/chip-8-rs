@@ -9,6 +9,7 @@ pub struct Chip8 {
     vram: [bool; VRAM_SIZE],
     pc: usize,
     registers: [u8; NUMBER_OF_REGISTERS], // V0, V1, ..., VF
+    i: u16,
 }
 
 impl Chip8 {
@@ -18,6 +19,7 @@ impl Chip8 {
             vram: [false; VRAM_SIZE],
             pc: 0x200,
             registers: [0; NUMBER_OF_REGISTERS],
+            i: 0,
         }
     }
 
@@ -61,7 +63,7 @@ impl Chip8 {
                 self.registers[register_number as usize] += value;
             }
             (0xA, _, _, _) => {
-                // TODO: set index register I
+                self.i = opcode & 0x0FFF;
             }
             (0xD, _, _, _) => {
                 // TODO: display/draw
@@ -140,5 +142,14 @@ mod tests {
 
         chip.decode(0x7808);
         assert_eq!(0x42 + 0x08, chip.registers[register_number]);
+    }
+
+    #[test]
+    fn test_annn_store_address_in_register() {
+        let mut chip = Chip8::new();
+        assert_eq!(0, chip.i);
+
+        chip.decode(0xA123);
+        assert_eq!(0x123, chip.i);
     }
 }
