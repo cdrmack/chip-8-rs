@@ -56,7 +56,9 @@ impl Chip8 {
                 self.registers[register_number as usize] = value;
             }
             (0x7, _, _, _) => {
-                // TODO: add value to register VX
+                let register_number = ((opcode & 0x0F00) >> 8) as u8;
+                let value: u8 = (opcode & 0x00FF) as u8;
+                self.registers[register_number as usize] += value;
             }
             (0xA, _, _, _) => {
                 // TODO: set index register I
@@ -115,7 +117,7 @@ mod tests {
         let mut chip = Chip8::new();
         assert_eq!(0x200, chip.pc);
 
-        chip.decode(0x142C); // 0x1NNN
+        chip.decode(0x142C);
         assert_eq!(0x42C as usize, chip.pc);
     }
 
@@ -127,5 +129,16 @@ mod tests {
 
         chip.decode(0x6842);
         assert_eq!(0x42, chip.registers[register_number]);
+    }
+
+    #[test]
+    fn test_7xnn_should_add_value_to_register_x() {
+        let mut chip = Chip8::new();
+        let register_number = 8;
+        chip.decode(0x6842);
+        assert_eq!(0x42, chip.registers[register_number]);
+
+        chip.decode(0x7808);
+        assert_eq!(0x42 + 0x08, chip.registers[register_number]);
     }
 }
