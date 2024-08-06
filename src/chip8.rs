@@ -45,7 +45,7 @@ impl Chip8 {
                 self.vram = [false; VRAM_SIZE];
             }
             (0x1, _, _, _) => {
-                // TODO: jump
+                self.pc = (opcode & 0x0FFF) as usize;
             }
             (0x6, _, _, _) => {
                 // TODO: set register VX
@@ -92,7 +92,7 @@ mod tests {
     }
 
     #[test]
-    fn test_00E0_should_clear_screen() {
+    fn test_00e0_should_clear_screen() {
         let mut chip = Chip8::new();
 
         for e in chip.vram.iter_mut() {
@@ -103,5 +103,14 @@ mod tests {
 
         let iter = chip.vram.iter().filter(|x| **x == true);
         assert_eq!(0, iter.count());
+    }
+
+    #[test]
+    fn test_1nnn_should_jump() {
+        let mut chip = Chip8::new();
+        assert_eq!(chip.pc, 0x200);
+
+        chip.decode(0x142C); // 0x1NNN
+        assert_eq!(0x42C as usize, chip.pc);
     }
 }
