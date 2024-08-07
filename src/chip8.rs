@@ -46,6 +46,17 @@ impl Chip8 {
         }
     }
 
+    pub fn load(&mut self, data: &[u8]) {
+        for (i, &byte) in data.iter().enumerate() {
+            let addr = 0x200 + i;
+            if addr < RAM_SIZE {
+                self.ram[addr] = byte;
+            } else {
+                panic!("not enough RAM")
+            }
+        }
+    }
+
     pub fn get_vram(&self) -> &[bool; VRAM_SIZE] {
         &self.vram
     }

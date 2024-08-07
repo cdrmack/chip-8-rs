@@ -1,4 +1,5 @@
 use raylib::prelude::*;
+use std::{fs::File, io::Read};
 
 const PIXEL_SIZE: usize = 10;
 
@@ -28,6 +29,15 @@ fn main() {
         .build();
 
     let mut chip = chip8::Chip8::new();
+    let mut f = File::open("rom.ch8").expect("file not found");
+    let mut buffer = [0u8; 4096 - 0x200];
+    let result = f.read(&mut buffer);
+    if result.is_ok() {
+        println!("read {} bytes from rom", result.unwrap());
+        chip.load(&buffer);
+    } else {
+        panic!("reading rom returned error")
+    }
 
     while !rl_handle.window_should_close() {
         let mut draw_handle = rl_handle.begin_drawing(&thread);
