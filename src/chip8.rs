@@ -206,4 +206,68 @@ mod tests {
         chip.decode(0xA123);
         assert_eq!(0x123, chip.i);
     }
+
+    #[test]
+    fn test_dxyn_updates_vram() {
+        let mut chip = Chip8::new();
+        let x = 0;
+        let y = 1;
+        chip.registers[x] = 8;
+        chip.registers[y] = 16;
+
+        chip.i = 0x200;
+        chip.ram[0x200] = 0b1001_1001;
+        chip.ram[0x201] = 0b0110_0110;
+
+        let start_position = chip.registers[x] as usize + (chip.registers[y] as usize * WIDTH);
+
+        // first row
+        assert_eq!([false; 8], chip.vram[start_position..start_position + 8]);
+        // second row
+        assert_eq!(
+            [false; 8],
+            chip.vram[start_position + WIDTH..start_position + WIDTH + 8]
+        );
+
+        chip.decode(0xD012);
+
+        // first row
+        assert_eq!(
+            [true, false, false, true, true, false, false, true],
+            chip.vram[start_position..start_position + 8]
+        );
+        // second row
+        assert_eq!(
+            [false, true, true, false, false, true, true, false],
+            chip.vram[start_position + WIDTH..start_position + WIDTH + 8]
+        );
+
+        assert_eq!(0, chip.registers[0xF]);
+    }
+
+    #[test]
+    fn test_dxyn_updates_vram_and_vf_register() {
+        let mut chip = Chip8::new();
+        chip.registers[0] = 0;
+
+        chip.i = 0x200;
+        chip.ram[0x200] = 0b1000_0000;
+        chip.vram[0] = true;
+
+        assert_eq!(
+            [true, false, false, false, false, false, false, false],
+            chip.vram[0..8]
+        );
+        assert_eq!(0, chip.registers[0xF]);
+
+        chip.decode(0xD001);
+
+        assert_eq!([false; 8], chip.vram[0..8]);
+        assert_eq!(1, chip.registers[0xF]);
+    }
+
+    #[test]
+    fn test_dxyn_updates_vram_and_clip_on_edges() {
+        // TODO
+    }
 }
