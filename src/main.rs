@@ -31,7 +31,6 @@ fn main() {
 
     while !rl_handle.window_should_close() {
         let mut draw_handle = rl_handle.begin_drawing(&thread);
-        draw_handle.clear_background(Color::BLACK);
         chip.tick();
         draw(&chip, &mut draw_handle);
     }

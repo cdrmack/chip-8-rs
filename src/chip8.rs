@@ -8,7 +8,7 @@ pub struct Chip8 {
     ram: [u8; RAM_SIZE],
     vram: [bool; VRAM_SIZE],
     pc: usize,
-    registers: [u8; NUMBER_OF_REGISTERS], // V0, V1, ..., VF
+    registers: [u8; NUMBER_OF_REGISTERS],
     i: u16,
 }
 
@@ -35,7 +35,7 @@ impl Chip8 {
 
         let mut ram_with_fonts = [0; RAM_SIZE];
 
-        ram_with_fonts[0x050..0x09F].copy_from_slice(&fontset);
+        ram_with_fonts[0x050..=0x09F].copy_from_slice(&fontset);
 
         Chip8 {
             ram: ram_with_fonts,
@@ -87,7 +87,26 @@ impl Chip8 {
                 self.i = opcode & 0x0FFF;
             }
             (0xD, x, y, n) => {
-                // TODO: display/draw
+                let vram_x = self.registers[x as usize] as usize % WIDTH;
+                let vram_y = self.registers[y as usize] as usize % HEIGHT;
+                self.registers[0xF] = 0;
+
+                // TODO: clip on edge
+                for row in 0..n {
+                    let sprite_data = self.ram[(self.i + row as u16) as usize];
+                    for column in 0..8 {
+                        let location = vram_x + column + ((vram_y + row as usize) * WIDTH);
+                        let sprite_pixel_on = (sprite_data & (0x80 >> column)) != 0;
+                        if sprite_pixel_on {
+                            if self.vram[location] {
+                                self.vram[location] = false;
+                                self.registers[0xF] = 1;
+                            } else {
+                                self.vram[location] = true;
+                            }
+                        }
+                    }
+                }
             }
             _ => (),
         }
@@ -95,8 +114,11 @@ impl Chip8 {
 
     pub fn tick(&mut self) {
         let opcode = self.fetch();
+        // TODO: remove this guard
+        if self.pc < RAM_SIZE - 2 {
+            self.pc += 2;
+        }
         self.decode(opcode);
-        // TODO: execute
     }
 }
 
