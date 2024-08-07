@@ -14,8 +14,31 @@ pub struct Chip8 {
 
 impl Chip8 {
     pub fn new() -> Self {
+        let fontset: [u8; 80] = [
+            0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+            0x20, 0x60, 0x20, 0x20, 0x70, // 1
+            0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+            0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+            0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+            0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+            0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+            0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+            0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+            0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+            0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+            0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+            0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+            0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+            0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+            0xF0, 0x80, 0xF0, 0x80, 0x80, // F
+        ];
+
+        let mut ram_with_fonts = [0; RAM_SIZE];
+
+        ram_with_fonts[0x050..0x09F].copy_from_slice(&fontset);
+
         Chip8 {
-            ram: [0; RAM_SIZE],
+            ram: ram_with_fonts,
             vram: [false; VRAM_SIZE],
             pc: 0x200,
             registers: [0; NUMBER_OF_REGISTERS],
@@ -52,20 +75,18 @@ impl Chip8 {
             (0x1, _, _, _) => {
                 self.pc = (opcode & 0x0FFF) as usize;
             }
-            (0x6, _, _, _) => {
-                let register_number = ((opcode & 0x0F00) >> 8) as u8;
+            (0x6, x, _, _) => {
                 let value: u8 = (opcode & 0x00FF) as u8;
-                self.registers[register_number as usize] = value;
+                self.registers[x as usize] = value;
             }
-            (0x7, _, _, _) => {
-                let register_number = ((opcode & 0x0F00) >> 8) as u8;
+            (0x7, x, _, _) => {
                 let value: u8 = (opcode & 0x00FF) as u8;
-                self.registers[register_number as usize] += value;
+                self.registers[x as usize] += value;
             }
             (0xA, _, _, _) => {
                 self.i = opcode & 0x0FFF;
             }
-            (0xD, _, _, _) => {
+            (0xD, x, y, n) => {
                 // TODO: display/draw
             }
             _ => (),
