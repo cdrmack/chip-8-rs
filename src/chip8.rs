@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 pub const WIDTH: usize = 64;
 pub const HEIGHT: usize = 32;
 const RAM_SIZE: usize = 4096;
@@ -10,6 +12,7 @@ pub struct Chip8 {
     pc: usize,
     registers: [u8; NUMBER_OF_REGISTERS],
     i: u16,
+    stack: VecDeque<usize>,
 }
 
 impl Chip8 {
@@ -43,6 +46,7 @@ impl Chip8 {
             pc: 0x200,
             registers: [0; NUMBER_OF_REGISTERS],
             i: 0,
+            stack: VecDeque::new(),
         }
     }
 
@@ -84,6 +88,10 @@ impl Chip8 {
                 self.vram = [false; VRAM_SIZE];
             }
             (0x1, _, _, _) => {
+                self.pc = (opcode & 0x0FFF) as usize;
+            }
+            (0x2, _, _, _) => {
+                self.stack.push_back(self.pc);
                 self.pc = (opcode & 0x0FFF) as usize;
             }
             (0x6, x, _, _) => {
@@ -336,5 +344,17 @@ mod tests {
             [true, true, true, true, false, false, false, false],
             chip.vram[position_y * WIDTH..position_y * WIDTH + 8],
         );
+    }
+
+    #[test]
+    fn test_2nnn_should_update_pc_and_stack() {
+        let mut chip = Chip8::new();
+        assert_eq!(0x200, chip.pc);
+        assert!(chip.stack.is_empty());
+
+        chip.decode(0x2123);
+
+        assert_eq!(Some(&0x200), chip.stack.back());
+        assert_eq!(0x123, chip.pc);
     }
 }
