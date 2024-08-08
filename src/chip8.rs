@@ -102,10 +102,20 @@ impl Chip8 {
                 let vram_y = self.registers[y as usize] as usize % HEIGHT;
                 self.registers[0xF] = 0;
 
-                // TODO: clip on edge
-                for row in 0..n {
+                let mut clip_x = 0;
+                let mut clip_y = 0;
+
+                if WIDTH - vram_x < 8 {
+                    clip_x = 8 - (WIDTH - vram_x);
+                }
+
+                if HEIGHT - 1 - vram_y < (n as usize) {
+                    clip_y = n as usize - (HEIGHT - 1 - vram_y);
+                }
+
+                for row in 0..(n - clip_y as u8) {
                     let sprite_data = self.ram[(self.i + row as u16) as usize];
-                    for column in 0..8 {
+                    for column in 0..(8 - clip_x) {
                         let location = vram_x + column + ((vram_y + row as usize) * WIDTH);
                         let sprite_pixel_on = (sprite_data & (0x80 >> column)) != 0;
                         if sprite_pixel_on {
@@ -267,7 +277,64 @@ mod tests {
     }
 
     #[test]
-    fn test_dxyn_updates_vram_and_clip_on_edges() {
-        // TODO
+    fn test_dxyn_updates_vram_and_clip_on_x() {
+        let mut chip = Chip8::new();
+        let position_x: usize = 62;
+        chip.registers[0] = position_x as u8; // should update vram[62..=63] only
+        chip.registers[1] = 0;
+
+        chip.i = 0x200;
+        chip.ram[0x200] = 0xFF;
+
+        assert_eq!(
+            [false, false, false, false, false, false, false, false],
+            chip.vram[position_x..position_x + 8],
+        );
+
+        chip.decode(0xD011);
+        assert_eq!(
+            [true, true, false, false, false, false, false, false], // 62, 63, EDGE (clip here)
+            chip.vram[position_x..position_x + 8],
+        );
+    }
+
+    #[test]
+    fn test_dxyn_updates_vram_and_clip_on_y() {
+        let mut chip = Chip8::new();
+        let position_y: usize = 30;
+        chip.registers[0] = 0;
+        chip.registers[1] = position_y as u8;
+
+        chip.i = 0x200;
+        chip.ram[0x200] = 0xF0;
+        chip.ram[0x201] = 0xF0;
+        chip.ram[0x202] = 0xF0;
+        chip.ram[0x203] = 0xF0;
+
+        // row 30
+        assert_eq!(
+            [false, false, false, false, false, false, false, false],
+            chip.vram[position_y * WIDTH..position_y * WIDTH + 8],
+        );
+
+        // row 31
+        assert_eq!(
+            [false, false, false, false, false, false, false, false],
+            chip.vram[position_y * WIDTH..position_y * WIDTH + 8],
+        );
+
+        chip.decode(0xD014);
+
+        // row 30
+        assert_eq!(
+            [true, true, true, true, false, false, false, false],
+            chip.vram[position_y * WIDTH..position_y * WIDTH + 8],
+        );
+
+        // row 31
+        assert_eq!(
+            [true, true, true, true, false, false, false, false],
+            chip.vram[position_y * WIDTH..position_y * WIDTH + 8],
+        );
     }
 }
