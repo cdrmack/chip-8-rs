@@ -83,16 +83,21 @@ impl Chip8 {
             (opcode & 0x000F) as u8,
         );
 
+        let nnn = (opcode & 0x0FFF) as usize;
+
         match nibbles {
             (0x0, 0x0, 0xE, 0x0) => {
                 self.vram = [false; VRAM_SIZE];
             }
+            (0x0, 0x0, 0xE, 0xE) => {
+                self.pc = self.stack.pop_back().unwrap();
+            }
             (0x1, _, _, _) => {
-                self.pc = (opcode & 0x0FFF) as usize;
+                self.pc = nnn;
             }
             (0x2, _, _, _) => {
                 self.stack.push_back(self.pc);
-                self.pc = (opcode & 0x0FFF) as usize;
+                self.pc = nnn;
             }
             (0x6, x, _, _) => {
                 let value: u8 = (opcode & 0x00FF) as u8;
@@ -355,6 +360,19 @@ mod tests {
         chip.decode(0x2123);
 
         assert_eq!(Some(&0x200), chip.stack.back());
+        assert_eq!(0x123, chip.pc);
+    }
+
+    #[test]
+    fn test_00ee_should_pop_stack_and_update_pc() {
+        let mut chip = Chip8::new();
+        assert_eq!(0x200, chip.pc);
+        assert!(chip.stack.is_empty());
+        chip.stack.push_back(0x123);
+
+        chip.decode(0x00EE);
+
+        assert!(chip.stack.is_empty());
         assert_eq!(0x123, chip.pc);
     }
 }
