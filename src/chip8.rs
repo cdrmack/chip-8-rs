@@ -110,6 +110,11 @@ impl Chip8 {
                     self.pc += 1;
                 }
             }
+            // (0x5, x, y, _) => {
+            //     if self.registers[x as usize] == self.registers[y as usize] {
+            //         self.pc += 1;
+            //     }
+            // }
             (0x6, x, _, _) => {
                 let value: u8 = (opcode & 0x00FF) as u8;
                 self.registers[x as usize] = value;
@@ -118,6 +123,11 @@ impl Chip8 {
                 let value: u8 = (opcode & 0x00FF) as u8;
                 self.registers[x as usize] += value;
             }
+            // (0x9, x, y, _) => {
+            //     if self.registers[x as usize] != self.registers[y as usize] {
+            //         self.pc += 1;
+            //     }
+            // }
             (0xA, _, _, _) => {
                 self.i = opcode & 0x0FFF;
             }
@@ -408,4 +418,37 @@ mod tests {
 
         assert_eq!(0x200, chip.pc);
     }
+
+    #[test]
+    fn test_4xnn_should_skip_instruction() {
+        let mut chip = Chip8::new();
+        chip.registers[0xA] = 0x41;
+        assert_eq!(0x200, chip.pc);
+
+        chip.decode(0x4A42);
+
+        assert_eq!(0x201, chip.pc);
+    }
+
+    #[test]
+    fn test_4xnn_should_not_skip_instruction() {
+        let mut chip = Chip8::new();
+        chip.registers[0xA] = 0x42;
+        assert_eq!(0x200, chip.pc);
+
+        chip.decode(0x4A42);
+
+        assert_eq!(0x200, chip.pc);
+    }
+
+    // #[test]
+    // fn test_5xy0_should_not_skip_instruction() {
+    //     let mut chip = Chip8::new();
+    //     chip.registers[0xA] = 0x41;
+    //     assert_eq!(0x200, chip.pc);
+
+    //     chip.decode(0x3A42);
+
+    //     assert_eq!(0x200, chip.pc);
+    // }
 }
