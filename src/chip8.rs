@@ -84,6 +84,7 @@ impl Chip8 {
         );
 
         let nnn = (opcode & 0x0FFF) as usize;
+        let nn = (opcode & 0x00FF) as usize;
 
         match nibbles {
             (0x0, 0x0, 0xE, 0x0) => {
@@ -98,6 +99,16 @@ impl Chip8 {
             (0x2, _, _, _) => {
                 self.stack.push_back(self.pc);
                 self.pc = nnn;
+            }
+            (0x3, x, _, _) => {
+                if self.registers[x as usize] == nn as u8 {
+                    self.pc += 1;
+                }
+            }
+            (0x4, x, _, _) => {
+                if self.registers[x as usize] != nn as u8 {
+                    self.pc += 1;
+                }
             }
             (0x6, x, _, _) => {
                 let value: u8 = (opcode & 0x00FF) as u8;
@@ -374,5 +385,27 @@ mod tests {
 
         assert!(chip.stack.is_empty());
         assert_eq!(0x123, chip.pc);
+    }
+
+    #[test]
+    fn test_3xnn_should_skip_instruction() {
+        let mut chip = Chip8::new();
+        chip.registers[0xA] = 0x42;
+        assert_eq!(0x200, chip.pc);
+
+        chip.decode(0x3A42);
+
+        assert_eq!(0x201, chip.pc);
+    }
+
+    #[test]
+    fn test_3xnn_should_not_skip_instruction() {
+        let mut chip = Chip8::new();
+        chip.registers[0xA] = 0x41;
+        assert_eq!(0x200, chip.pc);
+
+        chip.decode(0x3A42);
+
+        assert_eq!(0x200, chip.pc);
     }
 }
