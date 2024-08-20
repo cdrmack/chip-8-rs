@@ -116,12 +116,10 @@ impl Chip8 {
                 }
             }
             (0x6, x, _, _) => {
-                let value: u8 = (opcode & 0x00FF) as u8;
-                self.registers[x as usize] = value;
+                self.registers[x as usize] = nn as u8;
             }
             (0x7, x, _, _) => {
-                let value: u8 = (opcode & 0x00FF) as u8;
-                self.registers[x as usize] += value;
+                self.registers[x as usize] += nn as u8;
             }
             (0x9, x, y, 0) => {
                 if self.registers[x as usize] != self.registers[y as usize] {
@@ -129,7 +127,7 @@ impl Chip8 {
                 }
             }
             (0xA, _, _, _) => {
-                self.i = opcode & 0x0FFF;
+                self.i = nnn as u16;
             }
             (0xD, x, y, n) => {
                 let vram_x = self.registers[x as usize] as usize % WIDTH;
