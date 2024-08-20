@@ -121,6 +121,9 @@ impl Chip8 {
             (0x7, x, _, _) => {
                 self.registers[x as usize] += nn as u8;
             }
+            (0x8, x, y, 0) => {
+                self.registers[x as usize] = self.registers[y as usize];
+            }
             (0x9, x, y, 0) => {
                 if self.registers[x as usize] != self.registers[y as usize] {
                     self.pc += 1;
@@ -485,5 +488,17 @@ mod tests {
         chip.decode(0x9AB0);
 
         assert_eq!(0x200, chip.pc);
+    }
+    #[test]
+    fn test_0x8xy0_should_copy_vy_to_vx() {
+        let mut chip = Chip8::new();
+        chip.registers[0x5] = 8;
+        chip.registers[0xA] = 16;
+        assert_eq!(8, chip.registers[0x5]);
+        assert_eq!(16, chip.registers[0xA]);
+
+        chip.decode(0x85A0);
+        assert_eq!(16, chip.registers[0x5]);
+        assert_eq!(16, chip.registers[0xA]);
     }
 }
