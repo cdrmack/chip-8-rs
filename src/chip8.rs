@@ -124,6 +124,18 @@ impl Chip8 {
             (0x8, x, y, 0) => {
                 self.registers[x as usize] = self.registers[y as usize];
             }
+            (0x8, x, y, 1) => {
+                self.registers[x as usize] =
+                    self.registers[x as usize] | self.registers[y as usize];
+            }
+            (0x8, x, y, 2) => {
+                self.registers[x as usize] =
+                    self.registers[x as usize] & self.registers[y as usize];
+            }
+            (0x8, x, y, 3) => {
+                self.registers[x as usize] =
+                    self.registers[x as usize] ^ self.registers[y as usize];
+            }
             (0x9, x, y, 0) => {
                 if self.registers[x as usize] != self.registers[y as usize] {
                     self.pc += 1;
@@ -500,5 +512,35 @@ mod tests {
         chip.decode(0x85A0);
         assert_eq!(16, chip.registers[0x5]);
         assert_eq!(16, chip.registers[0xA]);
+    }
+    #[test]
+    fn test_0x8xy1_vx_or_vy() {
+        let mut chip = Chip8::new();
+        chip.registers[0x5] = 0b0001_1100;
+        chip.registers[0xA] = 0b1011_0001;
+
+        chip.decode(0x85A1);
+        assert_eq!(0b1011_1101, chip.registers[0x5]);
+        assert_eq!(0b1011_0001, chip.registers[0xA]);
+    }
+    #[test]
+    fn test_0x8xy1_vx_and_vy() {
+        let mut chip = Chip8::new();
+        chip.registers[0x5] = 0b0001_1100;
+        chip.registers[0xA] = 0b1011_0001;
+
+        chip.decode(0x85A2);
+        assert_eq!(0b0001_0000, chip.registers[0x5]);
+        assert_eq!(0b1011_0001, chip.registers[0xA]);
+    }
+    #[test]
+    fn test_0x8xy1_vx_xor_vy() {
+        let mut chip = Chip8::new();
+        chip.registers[0x5] = 0b0001_1100;
+        chip.registers[0xA] = 0b1011_0001;
+
+        chip.decode(0x85A3);
+        assert_eq!(0b1010_1101, chip.registers[0x5]);
+        assert_eq!(0b1011_0001, chip.registers[0xA]);
     }
 }
