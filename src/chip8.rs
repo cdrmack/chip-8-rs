@@ -136,6 +136,19 @@ impl Chip8 {
                 self.registers[x as usize] =
                     self.registers[x as usize] ^ self.registers[y as usize];
             }
+            (0x8, x, y, 4) => {
+                let vx = self.registers[x as usize] as u16;
+                let vy = self.registers[y as usize] as u16;
+                let result = vx + vy;
+
+                self.registers[x as usize] = result as u8;
+
+                if result > 0xFF {
+                    self.registers[0xF] = 1;
+                } else {
+                    self.registers[0xF] = 0;
+                }
+            }
             (0x9, x, y, 0) => {
                 if self.registers[x as usize] != self.registers[y as usize] {
                     self.pc += 1;
@@ -524,7 +537,7 @@ mod tests {
         assert_eq!(0b1011_0001, chip.registers[0xA]);
     }
     #[test]
-    fn test_0x8xy1_vx_and_vy() {
+    fn test_0x8xy2_vx_and_vy() {
         let mut chip = Chip8::new();
         chip.registers[0x5] = 0b0001_1100;
         chip.registers[0xA] = 0b1011_0001;
@@ -534,7 +547,7 @@ mod tests {
         assert_eq!(0b1011_0001, chip.registers[0xA]);
     }
     #[test]
-    fn test_0x8xy1_vx_xor_vy() {
+    fn test_0x8xy3_vx_xor_vy() {
         let mut chip = Chip8::new();
         chip.registers[0x5] = 0b0001_1100;
         chip.registers[0xA] = 0b1011_0001;
@@ -542,5 +555,29 @@ mod tests {
         chip.decode(0x85A3);
         assert_eq!(0b1010_1101, chip.registers[0x5]);
         assert_eq!(0b1011_0001, chip.registers[0xA]);
+    }
+    #[test]
+    fn test_0x8xy4_add_vy_to_vx_no_carry() {
+        let mut chip = Chip8::new();
+        chip.registers[0x5] = 12;
+        chip.registers[0xA] = 30;
+        chip.registers[0xF] = 0;
+
+        chip.decode(0x85A4);
+        assert_eq!(42, chip.registers[0x5]);
+        assert_eq!(30, chip.registers[0xA]);
+        assert_eq!(0, chip.registers[0xF]);
+    }
+    #[test]
+    fn test_0x8xy4_add_vy_to_vx_with_carry() {
+        let mut chip = Chip8::new();
+        chip.registers[0x5] = 8;
+        chip.registers[0xA] = 0xFF;
+        chip.registers[0xF] = 0;
+
+        chip.decode(0x85A4);
+        assert_eq!(7, chip.registers[0x5]);
+        assert_eq!(0xFF, chip.registers[0xA]);
+        assert_eq!(1, chip.registers[0xF]);
     }
 }
