@@ -125,16 +125,13 @@ impl Chip8 {
                 self.registers[x as usize] = self.registers[y as usize];
             }
             (0x8, x, y, 1) => {
-                self.registers[x as usize] =
-                    self.registers[x as usize] | self.registers[y as usize];
+                self.registers[x as usize] |= self.registers[y as usize];
             }
             (0x8, x, y, 2) => {
-                self.registers[x as usize] =
-                    self.registers[x as usize] & self.registers[y as usize];
+                self.registers[x as usize] &= self.registers[y as usize];
             }
             (0x8, x, y, 3) => {
-                self.registers[x as usize] =
-                    self.registers[x as usize] ^ self.registers[y as usize];
+                self.registers[x as usize] ^= self.registers[y as usize];
             }
             (0x8, x, y, 4) => {
                 let vx = self.registers[x as usize] as u16;
