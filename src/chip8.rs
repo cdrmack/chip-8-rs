@@ -93,8 +93,8 @@ impl Chip8 {
             (0x0, 0x0, 0xE, 0xE) => {
                 self.pc = self.stack.pop_back().unwrap();
             }
+            // jump to a machine code routine at NNN
             (0x0, _, _, _) => {
-                // jump to a machine code routine at nnn
                 // ignored by modern interpreters
             }
             (0x1, _, _, _) => {
@@ -186,8 +186,9 @@ impl Chip8 {
             (0xA, _, _, _) => {
                 self.i = nnn as u16;
             }
+            // jump to address NNN + V0
             (0xB, _, _, _) => {
-                // TODO
+                self.pc = nnn + (self.registers[0] as usize);
             }
             (0xC, x, _, _) => {
                 // TODO
@@ -743,5 +744,13 @@ mod tests {
         assert_eq!(0, chip.registers[0xF]);
         assert_eq!(0b0110_0000, chip.registers[0x6]);
         assert_eq!(0b1100_0000, chip.registers[0x5]);
+    }
+    #[test]
+    fn test_bnnn_jump_to_address_plus_v0() {
+        let mut chip = Chip8::new();
+        chip.registers[0x0] = 5;
+
+        chip.decode(0xB123); // 0x123 = 291
+        assert_eq!(296, chip.pc);
     }
 }
