@@ -93,6 +93,10 @@ impl Chip8 {
             (0x0, 0x0, 0xE, 0xE) => {
                 self.pc = self.stack.pop_back().unwrap();
             }
+            (0x0, _, _, _) => {
+                // jump to a machine code routine at nnn
+                // ignored by modern interpreters
+            }
             (0x1, _, _, _) => {
                 self.pc = nnn;
             }
@@ -152,11 +156,17 @@ impl Chip8 {
                 self.registers[0xF] = if vx > vy { 1 } else { 0 };
                 self.registers[x as usize] = vx.wrapping_sub(vy);
             }
+            (0x8, x, y, 6) => {
+                // TODO
+            }
             (0x8, x, y, 7) => {
                 let vx = self.registers[x as usize];
                 let vy = self.registers[y as usize];
                 self.registers[0xF] = if vy > vx { 1 } else { 0 };
                 self.registers[x as usize] = vy.wrapping_sub(vx);
+            }
+            (0x8, x, y, 0xE) => {
+                // TODO
             }
             (0x9, x, y, 0) => {
                 if self.registers[x as usize] != self.registers[y as usize] {
@@ -165,6 +175,12 @@ impl Chip8 {
             }
             (0xA, _, _, _) => {
                 self.i = nnn as u16;
+            }
+            (0xB, _, _, _) => {
+                // TODO
+            }
+            (0xC, x, _, _) => {
+                // TODO
             }
             (0xD, x, y, n) => {
                 let vram_x = self.registers[x as usize] as usize % WIDTH;
@@ -197,6 +213,39 @@ impl Chip8 {
                         }
                     }
                 }
+            }
+            (0xE, x, 9, 0xE) => {
+                // TODO
+            }
+            (0xE, x, 0xA, 1) => {
+                // TODO
+            }
+            (0xF, x, 0, 7) => {
+                // TODO
+            }
+            (0xF, x, 0, 0xA) => {
+                // TODO
+            }
+            (0xF, x, 1, 5) => {
+                // TODO
+            }
+            (0xF, x, 1, 8) => {
+                // TODO
+            }
+            (0xF, x, 1, 0xE) => {
+                // TODO
+            }
+            (0xF, x, 2, 9) => {
+                // TODO
+            }
+            (0xF, x, 3, 3) => {
+                // TODO
+            }
+            (0xF, x, 5, 5) => {
+                // TODO
+            }
+            (0xF, x, 6, 5) => {
+                // TODO
             }
             _ => (),
         }
