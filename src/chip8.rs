@@ -1,3 +1,4 @@
+use rand::{thread_rng, Rng};
 use std::collections::VecDeque;
 
 pub const WIDTH: usize = 64;
@@ -190,8 +191,14 @@ impl Chip8 {
             (0xB, _, _, _) => {
                 self.pc = nnn + (self.registers[0] as usize);
             }
+            // generate random number
+            // binary AND with NN
+            // store in VX
             (0xC, x, _, _) => {
-                // TODO
+                let mut rng = rand::thread_rng();
+                let mut random_number: u8 = rng.gen();
+                random_number &= nn as u8;
+                self.registers[x as usize] = random_number;
             }
             (0xD, x, y, n) => {
                 let vram_x = self.registers[x as usize] as usize % WIDTH;
@@ -752,5 +759,15 @@ mod tests {
 
         chip.decode(0xB123); // 0x123 = 291
         assert_eq!(296, chip.pc);
+    }
+    #[ignore]
+    #[test]
+    fn test_cxnn_binary_and_random_with_nn_store_in_vx() {
+        // cannot test because of random number
+        let mut chip = Chip8::new();
+        chip.registers[0x0] = 5;
+
+        chip.decode(0xC0FF);
+        //assert_eq!(???, chip.registers[0]);
     }
 }
