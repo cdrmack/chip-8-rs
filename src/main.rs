@@ -1,3 +1,5 @@
+use chip8::Chip8;
+use raylib::consts::KeyboardKey;
 use raylib::prelude::*;
 use std::{fs::File, io::Read};
 
@@ -40,8 +42,51 @@ fn main() {
     }
 
     while !rl_handle.window_should_close() {
-        let mut draw_handle = rl_handle.begin_drawing(&thread);
+        // input
+        handle_input(&mut rl_handle, &mut chip);
+
+        // tick
         chip.tick();
+
+        // draw
+        let mut draw_handle = rl_handle.begin_drawing(&thread);
         draw(&chip, &mut draw_handle);
+    }
+}
+
+/*
+ * 1 2 3 C -> 1 2 3 4
+ * 4 5 6 D -> Q W E R
+ * 7 8 9 E -> A S D E
+ * A 0 B F -> Z X C V
+ */
+fn handle_input(rl_handle: &mut RaylibHandle, chip: &mut Chip8) {
+    loop {
+        chip.keypad = [false; 16];
+
+        let key = rl_handle.get_key_pressed();
+        if key.is_none() {
+            return;
+        }
+
+        match key.unwrap() {
+            KeyboardKey::KEY_ONE => chip.keypad[0] = true,
+            KeyboardKey::KEY_TWO => chip.keypad[1] = true,
+            KeyboardKey::KEY_THREE => chip.keypad[2] = true,
+            KeyboardKey::KEY_FOUR => chip.keypad[3] = true,
+            KeyboardKey::KEY_Q => chip.keypad[4] = true,
+            KeyboardKey::KEY_W => chip.keypad[5] = true,
+            KeyboardKey::KEY_E => chip.keypad[6] = true,
+            KeyboardKey::KEY_R => chip.keypad[7] = true,
+            KeyboardKey::KEY_A => chip.keypad[8] = true,
+            KeyboardKey::KEY_S => chip.keypad[9] = true,
+            KeyboardKey::KEY_D => chip.keypad[10] = true,
+            KeyboardKey::KEY_F => chip.keypad[11] = true,
+            KeyboardKey::KEY_Z => chip.keypad[12] = true,
+            KeyboardKey::KEY_X => chip.keypad[13] = true,
+            KeyboardKey::KEY_C => chip.keypad[14] = true,
+            KeyboardKey::KEY_V => chip.keypad[15] = true,
+            _ => (),
+        }
     }
 }

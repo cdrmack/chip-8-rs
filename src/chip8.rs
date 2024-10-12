@@ -1,4 +1,4 @@
-use rand::{thread_rng, Rng};
+use rand::prelude::*;
 use std::collections::VecDeque;
 
 pub const WIDTH: usize = 64;
@@ -6,6 +6,7 @@ pub const HEIGHT: usize = 32;
 const RAM_SIZE: usize = 4096;
 const VRAM_SIZE: usize = WIDTH * HEIGHT;
 const NUMBER_OF_REGISTERS: usize = 16;
+const NUMBER_OF_KEYS: usize = 16;
 
 pub struct Chip8 {
     ram: [u8; RAM_SIZE],
@@ -14,6 +15,7 @@ pub struct Chip8 {
     registers: [u8; NUMBER_OF_REGISTERS],
     i: u16,
     stack: VecDeque<usize>,
+    pub keypad: [bool; NUMBER_OF_KEYS],
 }
 
 impl Chip8 {
@@ -48,6 +50,7 @@ impl Chip8 {
             registers: [0; NUMBER_OF_REGISTERS],
             i: 0,
             stack: VecDeque::new(),
+            keypad: [false; NUMBER_OF_KEYS],
         }
     }
 
