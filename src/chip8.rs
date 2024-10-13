@@ -17,6 +17,7 @@ pub struct Chip8 {
     stack: VecDeque<usize>,
     pub keypad: [bool; NUMBER_OF_KEYS],
     delay_timer: u8,
+    sound_timer: u8,
 }
 
 impl Chip8 {
@@ -53,6 +54,7 @@ impl Chip8 {
             stack: VecDeque::new(),
             keypad: [false; NUMBER_OF_KEYS],
             delay_timer: 0,
+            sound_timer: 0,
         }
     }
 
@@ -254,8 +256,9 @@ impl Chip8 {
             (0xF, x, 1, 5) => {
                 self.delay_timer = self.registers[x as usize];
             }
-            (0xF, _x, 1, 8) => {
-                // TODO
+            // set sound timer to the value of VX
+            (0xF, x, 1, 8) => {
+                self.sound_timer = self.registers[x as usize];
             }
             (0xF, _x, 1, 0xE) => {
                 // TODO
@@ -792,6 +795,15 @@ mod tests {
 
         assert_eq!(0, chip.delay_timer);
         chip.decode(0xF615); // VX = 6
-        assert_eq!(8, chip.registers[6]);
+        assert_eq!(8, chip.delay_timer);
+    }
+    #[test]
+    fn test_fx18_set_sound_timer_to_vx() {
+        let mut chip = Chip8::new();
+        chip.registers[6] = 8;
+
+        assert_eq!(0, chip.sound_timer);
+        chip.decode(0xF618); // VX = 6
+        assert_eq!(8, chip.sound_timer);
     }
 }
