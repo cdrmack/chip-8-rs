@@ -16,6 +16,7 @@ pub struct Chip8 {
     i: u16,
     stack: VecDeque<usize>,
     pub keypad: [bool; NUMBER_OF_KEYS],
+    delay_timer: u8,
 }
 
 impl Chip8 {
@@ -51,6 +52,7 @@ impl Chip8 {
             i: 0,
             stack: VecDeque::new(),
             keypad: [false; NUMBER_OF_KEYS],
+            delay_timer: 0,
         }
     }
 
@@ -241,14 +243,16 @@ impl Chip8 {
             (0xE, _x, 0xA, 1) => {
                 // TODO
             }
-            (0xF, _x, 0, 7) => {
-                // TODO
+            // set VX to the value of the delay timer
+            (0xF, x, 0, 7) => {
+                self.registers[x as usize] = self.delay_timer;
             }
             (0xF, _x, 0, 0xA) => {
                 // TODO
             }
-            (0xF, _x, 1, 5) => {
-                // TODO
+            // set delay timer to the value of VX
+            (0xF, x, 1, 5) => {
+                self.delay_timer = self.registers[x as usize];
             }
             (0xF, _x, 1, 8) => {
                 // TODO
@@ -772,5 +776,22 @@ mod tests {
 
         chip.decode(0xC0FF);
         //assert_eq!(???, chip.registers[0]);
+    }
+    #[test]
+    fn test_fx07_set_vx_to_delay_timer() {
+        let mut chip = Chip8::new();
+        chip.delay_timer = 8;
+
+        chip.decode(0xF507); // VX = 5
+        assert_eq!(8, chip.registers[5]);
+    }
+    #[test]
+    fn test_fx15_set_delay_timer_to_vx() {
+        let mut chip = Chip8::new();
+        chip.registers[6] = 8;
+
+        assert_eq!(0, chip.delay_timer);
+        chip.decode(0xF615); // VX = 6
+        assert_eq!(8, chip.registers[6]);
     }
 }
