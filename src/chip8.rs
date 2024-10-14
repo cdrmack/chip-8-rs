@@ -270,8 +270,11 @@ impl Chip8 {
             (0xF, _x, 3, 3) => {
                 // TODO
             }
-            (0xF, _x, 5, 5) => {
-                // TODO
+            // store V0..=VX in memory starting at memory location I
+            (0xF, x, 5, 5) => {
+                for i in 0..=x {
+                    self.ram[self.i as usize + i as usize] = self.registers[i as usize];
+                }
             }
             (0xF, _x, 6, 5) => {
                 // TODO
@@ -814,5 +817,28 @@ mod tests {
 
         chip.decode(0xF51E);
         assert_eq!(8, chip.i);
+    }
+    #[test]
+    fn test_fx55_store_registers_0_to_3_in_ram() {
+        let mut chip = Chip8::new();
+        chip.registers[0] = 8;
+        chip.registers[1] = 6;
+        chip.registers[2] = 5;
+        chip.registers[3] = 7;
+        chip.i = 0x3;
+
+        assert_eq!(0, chip.ram[2]);
+        assert_eq!(0, chip.ram[3]);
+        assert_eq!(0, chip.ram[4]);
+        assert_eq!(0, chip.ram[5]);
+        assert_eq!(0, chip.ram[6]);
+        assert_eq!(0, chip.ram[7]);
+        chip.decode(0xF355);
+        assert_eq!(0, chip.ram[2]);
+        assert_eq!(8, chip.ram[3]);
+        assert_eq!(6, chip.ram[4]);
+        assert_eq!(5, chip.ram[5]);
+        assert_eq!(7, chip.ram[6]);
+        assert_eq!(0, chip.ram[7]);
     }
 }
