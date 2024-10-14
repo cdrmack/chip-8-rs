@@ -260,8 +260,9 @@ impl Chip8 {
             (0xF, x, 1, 8) => {
                 self.sound_timer = self.registers[x as usize];
             }
-            (0xF, _x, 1, 0xE) => {
-                // TODO
+            // set I to VX + I
+            (0xF, x, 1, 0xE) => {
+                self.i += self.registers[x as usize] as u16;
             }
             (0xF, _x, 2, 9) => {
                 // TODO
@@ -805,5 +806,13 @@ mod tests {
         assert_eq!(0, chip.sound_timer);
         chip.decode(0xF618); // VX = 6
         assert_eq!(8, chip.sound_timer);
+    }
+    #[test]
+    fn test_fx1e_add_vx_to_i() {
+        let mut chip = Chip8::new();
+        chip.registers[5] = 8;
+
+        chip.decode(0xF51E);
+        assert_eq!(8, chip.i);
     }
 }
