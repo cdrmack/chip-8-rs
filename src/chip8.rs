@@ -276,8 +276,11 @@ impl Chip8 {
                     self.ram[self.i as usize + i as usize] = self.registers[i as usize];
                 }
             }
-            (0xF, _x, 6, 5) => {
-                // TODO
+            // fill V0..=VX with values from memory starting at location I
+            (0xF, x, 6, 5) => {
+                for i in 0..=x {
+                    self.registers[i as usize] = self.ram[self.i as usize + i as usize];
+                }
             }
             _ => (),
         }
@@ -819,26 +822,49 @@ mod tests {
         assert_eq!(8, chip.i);
     }
     #[test]
-    fn test_fx55_store_registers_0_to_3_in_ram() {
+    fn test_fx55_store_registers_in_ram() {
         let mut chip = Chip8::new();
         chip.registers[0] = 8;
         chip.registers[1] = 6;
         chip.registers[2] = 5;
         chip.registers[3] = 7;
-        chip.i = 0x3;
+        chip.i = 0x4; // RAM start location
 
-        assert_eq!(0, chip.ram[2]);
         assert_eq!(0, chip.ram[3]);
         assert_eq!(0, chip.ram[4]);
         assert_eq!(0, chip.ram[5]);
         assert_eq!(0, chip.ram[6]);
         assert_eq!(0, chip.ram[7]);
-        chip.decode(0xF355);
-        assert_eq!(0, chip.ram[2]);
-        assert_eq!(8, chip.ram[3]);
-        assert_eq!(6, chip.ram[4]);
-        assert_eq!(5, chip.ram[5]);
-        assert_eq!(7, chip.ram[6]);
-        assert_eq!(0, chip.ram[7]);
+        assert_eq!(0, chip.ram[8]);
+        chip.decode(0xF355); // VX = 3, store 0..=3
+        assert_eq!(0, chip.ram[3]);
+        assert_eq!(8, chip.ram[4]);
+        assert_eq!(6, chip.ram[5]);
+        assert_eq!(5, chip.ram[6]);
+        assert_eq!(7, chip.ram[7]);
+        assert_eq!(0, chip.ram[8]);
+    }
+    #[test]
+    fn test_fx65_fill_registers_from_ram() {
+        let mut chip = Chip8::new();
+        chip.ram[3] = 0;
+        chip.ram[4] = 8;
+        chip.ram[5] = 6;
+        chip.ram[6] = 5;
+        chip.ram[7] = 7;
+        chip.ram[8] = 0;
+        chip.i = 0x4; // RAM start location
+
+        assert_eq!(0, chip.registers[0]);
+        assert_eq!(0, chip.registers[1]);
+        assert_eq!(0, chip.registers[2]);
+        assert_eq!(0, chip.registers[3]);
+        assert_eq!(0, chip.registers[4]);
+        chip.decode(0xF365); // VX = 3, fill 0..=3
+        assert_eq!(8, chip.registers[0]);
+        assert_eq!(6, chip.registers[1]);
+        assert_eq!(5, chip.registers[2]);
+        assert_eq!(7, chip.registers[3]);
+        assert_eq!(0, chip.registers[4]);
     }
 }
