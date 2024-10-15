@@ -269,8 +269,16 @@ impl Chip8 {
                 let sprite_location = 0x50 + (self.registers[x as usize] * 5); // sprites are stored in ram starting from 0x50, each sprite is 5 bytes
                 self.i = sprite_location as u16;
             }
-            (0xF, _x, 3, 3) => {
-                // TODO
+            // store binary-coded decimal of VX
+            // hundreds digit in ram[I]
+            // tens digit in ram[I+1]
+            // ones digit in ram[I+2]
+            (0xF, x, 3, 3) => {
+                let vx = self.registers[x as usize];
+                let ix = self.i as usize;
+                self.ram[ix] = vx / 100;
+                self.ram[ix + 1] = (vx % 100) / 10;
+                self.ram[ix + 2] = vx % 10;
             }
             // store V0..=VX in memory starting at memory location I
             (0xF, x, 5, 5) => {
@@ -880,5 +888,18 @@ mod tests {
         chip.registers[6] = 0xA; // character `A` starts at 0x82 (130)
         chip.decode(0xF629);
         assert_eq!(0x82, chip.i);
+    }
+    #[test]
+    fn test_fx33_binary_code_decimal_stored_in_vx() {
+        let mut chip = Chip8::new();
+        chip.registers[5] = 123;
+
+        assert_eq!(0, chip.ram[chip.i as usize]);
+        assert_eq!(0, chip.ram[chip.i as usize + 1]);
+        assert_eq!(0, chip.ram[chip.i as usize + 2]);
+        chip.decode(0xF533);
+        assert_eq!(1, chip.ram[chip.i as usize]);
+        assert_eq!(2, chip.ram[chip.i as usize + 1]);
+        assert_eq!(3, chip.ram[chip.i as usize + 2]);
     }
 }
