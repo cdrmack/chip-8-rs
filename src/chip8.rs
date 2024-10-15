@@ -43,7 +43,7 @@ impl Chip8 {
 
         let mut ram_with_fonts = [0; RAM_SIZE];
 
-        ram_with_fonts[0x050..=0x09F].copy_from_slice(&fontset);
+        ram_with_fonts[0x50..=0x9F].copy_from_slice(&fontset);
 
         Chip8 {
             ram: ram_with_fonts,
@@ -264,8 +264,10 @@ impl Chip8 {
             (0xF, x, 1, 0xE) => {
                 self.i += self.registers[x as usize] as u16;
             }
-            (0xF, _x, 2, 9) => {
-                // TODO
+            // set I to the location of sprite for the character in VX
+            (0xF, x, 2, 9) => {
+                let sprite_location = 0x50 + (self.registers[x as usize] * 5); // sprites are stored in ram starting from 0x50, each sprite is 5 bytes
+                self.i = sprite_location as u16;
             }
             (0xF, _x, 3, 3) => {
                 // TODO
@@ -866,5 +868,17 @@ mod tests {
         assert_eq!(5, chip.registers[2]);
         assert_eq!(7, chip.registers[3]);
         assert_eq!(0, chip.registers[4]);
+    }
+    #[test]
+    fn test_fx29_set_i_to_location_of_sprite_in_vx() {
+        let mut chip = Chip8::new();
+
+        chip.registers[5] = 0x0; // character `0` starts at 0x50 (80)
+        chip.decode(0xF529);
+        assert_eq!(0x50, chip.i);
+
+        chip.registers[6] = 0xA; // character `A` starts at 0x82 (130)
+        chip.decode(0xF629);
+        assert_eq!(0x82, chip.i);
     }
 }
