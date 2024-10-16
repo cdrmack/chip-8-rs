@@ -52,7 +52,7 @@ impl Chip8 {
             registers: [0; NUMBER_OF_REGISTERS],
             i: 0,
             stack: VecDeque::new(),
-            keypad: [false; NUMBER_OF_KEYS],
+            keypad: [false; NUMBER_OF_KEYS], // 16 keys, 0..=F
             delay_timer: 0,
             sound_timer: 0,
         }
@@ -239,11 +239,19 @@ impl Chip8 {
                     }
                 }
             }
-            (0xE, _x, 9, 0xE) => {
-                // TODO
+            // skip next instruction if the key stored in VX is pressed
+            (0xE, x, 9, 0xE) => {
+                let vx = self.registers[x as usize];
+                if self.keypad[vx as usize] {
+                    self.pc += 2;
+                }
             }
-            (0xE, _x, 0xA, 1) => {
-                // TODO
+            // skip next instruction if the key stored in VX is not pressed
+            (0xE, x, 0xA, 1) => {
+                let vx = self.registers[x as usize];
+                if !self.keypad[vx as usize] {
+                    self.pc += 2;
+                }
             }
             // set VX to the value of the delay timer
             (0xF, x, 0, 7) => {
@@ -901,5 +909,35 @@ mod tests {
         assert_eq!(1, chip.ram[chip.i as usize]);
         assert_eq!(2, chip.ram[chip.i as usize + 1]);
         assert_eq!(3, chip.ram[chip.i as usize + 2]);
+    }
+    #[test]
+    fn test_ex9e_skip_if_vx_button_is_pressed() {
+        let mut chip = Chip8::new();
+        chip.registers[5] = 0x2;
+
+        let pc = chip.pc;
+        chip.keypad[0x2] = false; // simulate that key is not pressed
+        chip.decode(0xE59E);
+        assert_eq!(pc, chip.pc); // pc is incremented in tick, not decode
+
+        let pc = chip.pc;
+        chip.keypad[0x2] = true; // simulate that key is pressed
+        chip.decode(0xE59E);
+        assert_eq!(pc + 2, chip.pc);
+    }
+    #[test]
+    fn test_exa1_skip_if_vx_button_is_not_pressed() {
+        let mut chip = Chip8::new();
+        chip.registers[5] = 0x2;
+
+        let pc = chip.pc;
+        chip.keypad[0x2] = true; // simulate that key is pressed
+        chip.decode(0xE5A1);
+        assert_eq!(pc, chip.pc); // pc is incremented in tick, not decode
+
+        let pc = chip.pc;
+        chip.keypad[0x2] = false; // simulate that key is not pressed
+        chip.decode(0xE5A1);
+        assert_eq!(pc + 2, chip.pc);
     }
 }
