@@ -95,36 +95,43 @@ impl Chip8 {
         let nn = (opcode & 0x00FF) as u8;
 
         match nibbles {
+            // clear screen
             (0x0, 0x0, 0xE, 0x0) => {
                 self.vram = [false; VRAM_SIZE];
             }
+            // return from a subroutine
             (0x0, 0x0, 0xE, 0xE) => {
                 self.pc = self.stack.pop_back().unwrap();
             }
-            // jump to a machine code routine at NNN
+            // call machine code routine at NNN
             (0x0, _, _, _) => {
                 // ignored by modern interpreters
             }
+            // jump to address NNN
             (0x1, _, _, _) => {
                 self.pc = nnn;
             }
+            // call subroutine at NNN
             (0x2, _, _, _) => {
                 self.stack.push_back(self.pc);
                 self.pc = nnn;
             }
+            // skip next instruction if VX equals NN
             (0x3, x, _, _) => {
                 if self.registers[x as usize] == nn {
-                    self.pc += 1;
+                    self.pc += 2;
                 }
             }
+            // skip next instruction if VX does not equal NN
             (0x4, x, _, _) => {
                 if self.registers[x as usize] != nn {
-                    self.pc += 1;
+                    self.pc += 2;
                 }
             }
+            // skip next instruction if VX equals VY
             (0x5, x, y, 0) => {
                 if self.registers[x as usize] == self.registers[y as usize] {
-                    self.pc += 1;
+                    self.pc += 2;
                 }
             }
             (0x6, x, _, _) => {
@@ -190,9 +197,10 @@ impl Chip8 {
                 vx = vx << 1;
                 self.registers[x as usize] = vx;
             }
+            // skip next instruction if VX does not equal VY
             (0x9, x, y, 0) => {
                 if self.registers[x as usize] != self.registers[y as usize] {
-                    self.pc += 1;
+                    self.pc += 2;
                 }
             }
             (0xA, _, _, _) => {
@@ -325,6 +333,13 @@ impl Chip8 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_default_values() {
+        let chip = Chip8::new();
+        assert_eq!(0x200, chip.pc);
+        assert_eq!(0, chip.i);
+    }
 
     #[test]
     fn test_fetch() {
@@ -550,7 +565,7 @@ mod tests {
 
         chip.decode(0x3A42);
 
-        assert_eq!(0x201, chip.pc);
+        assert_eq!(0x202, chip.pc);
     }
 
     #[test]
@@ -572,7 +587,7 @@ mod tests {
 
         chip.decode(0x4A42);
 
-        assert_eq!(0x201, chip.pc);
+        assert_eq!(0x202, chip.pc);
     }
 
     #[test]
@@ -595,7 +610,7 @@ mod tests {
 
         chip.decode(0x5AB0);
 
-        assert_eq!(0x201, chip.pc);
+        assert_eq!(0x202, chip.pc);
     }
 
     #[test]
@@ -619,7 +634,7 @@ mod tests {
 
         chip.decode(0x9AB0);
 
-        assert_eq!(0x201, chip.pc);
+        assert_eq!(0x202, chip.pc);
     }
 
     #[test]
