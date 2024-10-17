@@ -92,7 +92,7 @@ impl Chip8 {
         );
 
         let nnn = (opcode & 0x0FFF) as usize;
-        let nn = (opcode & 0x00FF) as usize;
+        let nn = (opcode & 0x00FF) as u8;
 
         match nibbles {
             (0x0, 0x0, 0xE, 0x0) => {
@@ -113,12 +113,12 @@ impl Chip8 {
                 self.pc = nnn;
             }
             (0x3, x, _, _) => {
-                if self.registers[x as usize] == nn as u8 {
+                if self.registers[x as usize] == nn {
                     self.pc += 1;
                 }
             }
             (0x4, x, _, _) => {
-                if self.registers[x as usize] != nn as u8 {
+                if self.registers[x as usize] != nn {
                     self.pc += 1;
                 }
             }
@@ -128,10 +128,14 @@ impl Chip8 {
                 }
             }
             (0x6, x, _, _) => {
-                self.registers[x as usize] = nn as u8;
+                self.registers[x as usize] = nn;
             }
+            // VX += nn
             (0x7, x, _, _) => {
-                self.registers[x as usize] += nn as u8;
+                let vx = self.registers[x as usize] as u16;
+                let val = nn as u16;
+                let result = vx + val;
+                self.registers[x as usize] = result as u8;
             }
             (0x8, x, y, 0) => {
                 self.registers[x as usize] = self.registers[y as usize];
@@ -204,7 +208,7 @@ impl Chip8 {
             (0xC, x, _, _) => {
                 let mut rng = rand::thread_rng();
                 let mut random_number: u8 = rng.gen();
-                random_number &= nn as u8;
+                random_number &= nn;
                 self.registers[x as usize] = random_number;
             }
             (0xD, x, y, n) => {
@@ -257,8 +261,12 @@ impl Chip8 {
             (0xF, x, 0, 7) => {
                 self.registers[x as usize] = self.delay_timer;
             }
-            (0xF, _x, 0, 0xA) => {
-                // TODO
+            // wait for VX key to be pressed
+            (0xF, x, 0, 0xA) => {
+                let vx = self.registers[x as usize];
+                if !self.keypad[vx as usize] {
+                    self.pc -= 2; // decrement, we want to loop this until key is pressed
+                }
             }
             // set delay timer to the value of VX
             (0xF, x, 1, 5) => {
@@ -939,5 +947,25 @@ mod tests {
         chip.keypad[0x2] = false; // simulate that key is not pressed
         chip.decode(0xE5A1);
         assert_eq!(pc + 2, chip.pc);
+    }
+    #[test]
+    fn test_fx0a_wait_for_key_to_be_pressed() {
+        let mut chip = Chip8::new();
+        chip.registers[5] = 0x2;
+        chip.keypad[0x2] = false; // simulate that key is not pressed
+        chip.ram[0x200] = 0xF5;
+        chip.ram[0x200 + 1] = 0x0A;
+
+        assert_eq!(0x200, chip.pc);
+        chip.tick();
+        assert_eq!(0x200, chip.pc);
+        chip.tick();
+        assert_eq!(0x200, chip.pc);
+        chip.tick();
+        assert_eq!(0x200, chip.pc);
+
+        chip.keypad[0x2] = true; // simulate that key is pressed
+        chip.tick();
+        assert_eq!(0x200 + 2, chip.pc);
     }
 }
