@@ -169,11 +169,13 @@ impl Chip8 {
                     self.registers[0xF] = 0;
                 }
             }
+            // substract VY from VX
+            // set VF to 0 if underflow, 1 otherwise
             (0x8, x, y, 5) => {
                 let vx = self.registers[x as usize];
                 let vy = self.registers[y as usize];
-                self.registers[0xF] = if vx > vy { 1 } else { 0 };
                 self.registers[x as usize] = vx.wrapping_sub(vy);
+                self.registers[0xF] = if vx >= vy { 1 } else { 0 };
             }
             // set VF to the least-significant bit of VX
             // shift VX right by one bit
@@ -183,11 +185,13 @@ impl Chip8 {
                 vx = vx >> 1;
                 self.registers[x as usize] = vx;
             }
+            // substract VX from VY
+            // set VF to 0 if underflow, 1 otherwise
             (0x8, x, y, 7) => {
                 let vx = self.registers[x as usize];
                 let vy = self.registers[y as usize];
-                self.registers[0xF] = if vy > vx { 1 } else { 0 };
                 self.registers[x as usize] = vy.wrapping_sub(vx);
+                self.registers[0xF] = if vy >= vx { 1 } else { 0 };
             }
             // set VF to the least-significant bit of VX
             // shift VX left by one bit
@@ -715,7 +719,7 @@ mod tests {
         assert_eq!(1, chip.registers[0xF]);
     }
     #[test]
-    fn test_8xy5_subtract_vy_from_vx_with_carry() {
+    fn test_8xy5_subtract_vy_from_vx_vx_is_bigger() {
         let mut chip = Chip8::new();
         chip.registers[0x5] = 8;
         chip.registers[0xA] = 2;
@@ -727,7 +731,7 @@ mod tests {
         assert_eq!(1, chip.registers[0xF]);
     }
     #[test]
-    fn test_8xy5_subtract_vy_from_vx_no_carry() {
+    fn test_8xy5_subtract_vy_from_vx_s_smaller() {
         let mut chip = Chip8::new();
         chip.registers[0x5] = 2;
         chip.registers[0xA] = 8;
@@ -737,6 +741,18 @@ mod tests {
         assert_eq!(250, chip.registers[0x5]);
         assert_eq!(8, chip.registers[0xA]);
         assert_eq!(0, chip.registers[0xF]);
+    }
+    #[test]
+    fn test_8xy5_subtract_vy_from_vx_vx_and_vy_are_equal() {
+        let mut chip = Chip8::new();
+        chip.registers[0x5] = 8;
+        chip.registers[0xA] = 8;
+        chip.registers[0xF] = 0;
+
+        chip.decode(0x85A5);
+        assert_eq!(0, chip.registers[0x5]);
+        assert_eq!(8, chip.registers[0xA]);
+        assert_eq!(1, chip.registers[0xF]);
     }
     #[test]
     fn test_8xy6_store_vy_shifted_right_in_vx_lsb_1() {
@@ -763,7 +779,7 @@ mod tests {
         assert_eq!(0b0011_0000, chip.registers[0x5]);
     }
     #[test]
-    fn test_8xy7_subtract_vx_from_vy_with_carry() {
+    fn test_8xy7_subtract_vx_from_vy_vy_is_bigger() {
         let mut chip = Chip8::new();
         chip.registers[0x5] = 2;
         chip.registers[0xA] = 8;
@@ -775,7 +791,7 @@ mod tests {
         assert_eq!(1, chip.registers[0xF]);
     }
     #[test]
-    fn test_8xy7_subtract_vx_from_vy_no_carry() {
+    fn test_8xy7_subtract_vx_from_vy_vy_is_smaller() {
         let mut chip = Chip8::new();
         chip.registers[0x5] = 8;
         chip.registers[0xA] = 2;
@@ -785,6 +801,18 @@ mod tests {
         assert_eq!(250, chip.registers[0x5]);
         assert_eq!(2, chip.registers[0xA]);
         assert_eq!(0, chip.registers[0xF]);
+    }
+    #[test]
+    fn test_8xy7_subtract_vx_from_vy_vx_and_vy_are_equal() {
+        let mut chip = Chip8::new();
+        chip.registers[0x5] = 8;
+        chip.registers[0xA] = 8;
+        chip.registers[0xF] = 0;
+
+        chip.decode(0x85A7);
+        assert_eq!(0, chip.registers[0x5]);
+        assert_eq!(8, chip.registers[0xA]);
+        assert_eq!(1, chip.registers[0xF]);
     }
     #[test]
     fn test_8xye_store_vy_shifted_left_in_vx_lsb_1() {
