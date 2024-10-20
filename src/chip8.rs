@@ -179,11 +179,15 @@ impl Chip8 {
             }
             // set VF to the least-significant bit of VX
             // shift VX right by one bit
+            // for CHIP-8:
+            // VX = VY >> 1
+            // for CHIP-48 and SUPER-CHIP:
+            // VX = VX >> 1
             (0x8, x, y, 6) => {
-                let mut vx = self.registers[y as usize];
-                self.registers[0xF] = vx & 1;
-                vx = vx >> 1;
-                self.registers[x as usize] = vx;
+                let vy = self.registers[y as usize];
+                let flag = vy & 1;
+                self.registers[x as usize] = vy >> 1;
+                self.registers[0xF] = flag;
             }
             // substract VX from VY
             // set VF to 0 if underflow, 1 otherwise
@@ -776,6 +780,26 @@ mod tests {
         chip.decode(0x8566);
         assert_eq!(0, chip.registers[0xF]);
         assert_eq!(0b0110_0000, chip.registers[0x6]);
+        assert_eq!(0b0011_0000, chip.registers[0x5]);
+    }
+    #[test]
+    fn test_8xy6_store_vy_shifted_right_in_vx_use_vf_lsb_1() {
+        let mut chip = Chip8::new();
+        chip.registers[0x5] = 0b1111_0000;
+        chip.registers[0xF] = 0b0110_0001;
+
+        chip.decode(0x85F6);
+        assert_eq!(1, chip.registers[0xF]);
+        assert_eq!(0b0011_0000, chip.registers[0x5]);
+    }
+    #[test]
+    fn test_8xy6_store_vy_shifted_right_in_vx_use_vf_lsb_0() {
+        let mut chip = Chip8::new();
+        chip.registers[0x5] = 0b1111_0000;
+        chip.registers[0xF] = 0b0110_0000;
+
+        chip.decode(0x85F6);
+        assert_eq!(0, chip.registers[0xF]);
         assert_eq!(0b0011_0000, chip.registers[0x5]);
     }
     #[test]
