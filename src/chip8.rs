@@ -199,11 +199,15 @@ impl Chip8 {
             }
             // set VF to the least-significant bit of VX
             // shift VX left by one bit
+            // for CHIP-8:
+            // VX = VY << 1
+            // for CHIP-48 and SUPER-CHIP:
+            // VX = VX << 1
             (0x8, x, y, 0xE) => {
-                let mut vx = self.registers[y as usize];
-                self.registers[0xF] = vx & 1;
-                vx = vx << 1;
-                self.registers[x as usize] = vx;
+                let vy = self.registers[y as usize];
+                let flag = vy & 1;
+                self.registers[x as usize] = vy << 1;
+                self.registers[0xF] = flag;
             }
             // skip next instruction if VX does not equal VY
             (0x9, x, y, 0) => {
@@ -860,6 +864,26 @@ mod tests {
         chip.decode(0x856E);
         assert_eq!(0, chip.registers[0xF]);
         assert_eq!(0b0110_0000, chip.registers[0x6]);
+        assert_eq!(0b1100_0000, chip.registers[0x5]);
+    }
+    #[test]
+    fn test_8xye_store_vy_shifted_left_in_vx_use_vf_lsb_1() {
+        let mut chip = Chip8::new();
+        chip.registers[0x5] = 0b1111_0000;
+        chip.registers[0xF] = 0b0110_0001;
+
+        chip.decode(0x85FE);
+        assert_eq!(1, chip.registers[0xF]);
+        assert_eq!(0b1100_0010, chip.registers[0x5]);
+    }
+    #[test]
+    fn test_8xye_store_vy_shifted_left_in_vx_use_vf_lsb_0() {
+        let mut chip = Chip8::new();
+        chip.registers[0x5] = 0b1111_0000;
+        chip.registers[0xF] = 0b0110_0000;
+
+        chip.decode(0x85FE);
+        assert_eq!(0, chip.registers[0xF]);
         assert_eq!(0b1100_0000, chip.registers[0x5]);
     }
     #[test]
