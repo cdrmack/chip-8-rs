@@ -1,7 +1,15 @@
 use chip8::Chip8;
+use clap::Parser;
 use raylib::consts::KeyboardKey;
 use raylib::prelude::*;
 use std::{fs::File, io::Read};
+
+#[derive(Parser, Debug)]
+struct Args {
+    /// ROM to load
+    #[arg(short, required = true)]
+    rom: String,
+}
 
 const PIXEL_SIZE: usize = 10;
 
@@ -22,16 +30,9 @@ fn draw(chip: &chip8::Chip8, renderer: &mut RaylibDrawHandle) {
 }
 
 fn main() {
-    let (mut rl_handle, thread) = raylib::init()
-        .size(
-            (chip8::WIDTH * PIXEL_SIZE) as i32,
-            (chip8::HEIGHT * PIXEL_SIZE) as i32,
-        )
-        .title("CHIP-8-rs")
-        .build();
+    let mut f = File::open(Args::parse().rom).expect("file not found");
 
     let mut chip = chip8::Chip8::new();
-    let mut f = File::open("rom.ch8").expect("file not found");
     let mut buffer = [0u8; 4096 - 0x200];
     let result = f.read(&mut buffer);
     if result.is_ok() {
@@ -40,6 +41,14 @@ fn main() {
     } else {
         panic!("reading rom returned error")
     }
+
+    let (mut rl_handle, thread) = raylib::init()
+        .size(
+            (chip8::WIDTH * PIXEL_SIZE) as i32,
+            (chip8::HEIGHT * PIXEL_SIZE) as i32,
+        )
+        .title("CHIP-8-rs")
+        .build();
 
     while !rl_handle.window_should_close() {
         // input

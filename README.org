@@ -1,7 +1,7 @@
-[[https://en.wikipedia.org/wiki/CHIP-8][CHIP-8]] emulator using [[https://github.com/raysan5/raylib][raylib]]. It expects =rom.ch8= file.
+[[https://en.wikipedia.org/wiki/CHIP-8][CHIP-8]] emulator using [[https://github.com/raysan5/raylib][raylib]]. It expects =*.ch8= file.
 
 #+begin_src shell
-  cargo run
+  cargo run -- -r <ROM>
 #+end_src
 
 Tested with [[https://github.com/Timendus/chip8-test-suite][chip8-test-suite]] and few games.
