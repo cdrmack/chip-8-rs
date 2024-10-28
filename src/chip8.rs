@@ -179,14 +179,11 @@ impl Chip8 {
             }
             // set VF to the least-significant bit of VX
             // shift VX right by one bit
-            // for CHIP-8:
-            // VX = VY >> 1
-            // for CHIP-48 and SUPER-CHIP:
             // VX = VX >> 1
-            (0x8, x, y, 6) => {
-                let vy = self.registers[y as usize];
-                let flag = vy & 1;
-                self.registers[x as usize] = vy >> 1;
+            (0x8, x, _y, 6) => {
+                let vx = self.registers[x as usize];
+                let flag = vx & 1;
+                self.registers[x as usize] = vx >> 1;
                 self.registers[0xF] = flag;
             }
             // substract VX from VY
@@ -199,14 +196,11 @@ impl Chip8 {
             }
             // set VF to the least-significant bit of VX
             // shift VX left by one bit
-            // for CHIP-8:
-            // VX = VY << 1
-            // for CHIP-48 and SUPER-CHIP:
             // VX = VX << 1
-            (0x8, x, y, 0xE) => {
-                let vy = self.registers[y as usize];
-                let flag = vy & 1;
-                self.registers[x as usize] = vy << 1;
+            (0x8, x, _y, 0xE) => {
+                let vx = self.registers[x as usize];
+                let flag = vx & 1;
+                self.registers[x as usize] = vx << 1;
                 self.registers[0xF] = flag;
             }
             // skip next instruction if VX does not equal VY
@@ -763,48 +757,40 @@ mod tests {
         assert_eq!(1, chip.registers[0xF]);
     }
     #[test]
-    fn test_8xy6_store_vy_shifted_right_in_vx_lsb_1() {
+    fn test_8xy6_shift_vx_right_lsb_1() {
         let mut chip = Chip8::new();
         chip.registers[0xF] = 0;
-        chip.registers[0x5] = 0b1111_0000;
-        chip.registers[0x6] = 0b0110_0001;
+        chip.registers[0x5] = 0b0110_0001;
 
-        chip.decode(0x8566);
+        chip.decode(0x8506);
         assert_eq!(1, chip.registers[0xF]);
-        assert_eq!(0b0110_0001, chip.registers[0x6]);
         assert_eq!(0b0011_0000, chip.registers[0x5]);
     }
     #[test]
-    fn test_8xy6_store_vy_shifted_right_in_vx_lsb_0() {
+    fn test_8xy6_shift_vx_right_lsb_0() {
         let mut chip = Chip8::new();
         chip.registers[0xF] = 0;
-        chip.registers[0x5] = 0b1111_0000;
-        chip.registers[0x6] = 0b0110_0000;
+        chip.registers[0x5] = 0b0110_0000;
 
-        chip.decode(0x8566);
+        chip.decode(0x8506);
         assert_eq!(0, chip.registers[0xF]);
-        assert_eq!(0b0110_0000, chip.registers[0x6]);
         assert_eq!(0b0011_0000, chip.registers[0x5]);
     }
     #[test]
-    fn test_8xy6_store_vy_shifted_right_in_vx_use_vf_lsb_1() {
+    fn test_8xy6_shift_vx_right_use_vf_lsb_1() {
         let mut chip = Chip8::new();
-        chip.registers[0x5] = 0b1111_0000;
         chip.registers[0xF] = 0b0110_0001;
 
-        chip.decode(0x85F6);
+        chip.decode(0x8F06);
         assert_eq!(1, chip.registers[0xF]);
-        assert_eq!(0b0011_0000, chip.registers[0x5]);
     }
     #[test]
-    fn test_8xy6_store_vy_shifted_right_in_vx_use_vf_lsb_0() {
+    fn test_8xy6_shift_vx_right_use_vf_lsb_0() {
         let mut chip = Chip8::new();
-        chip.registers[0x5] = 0b1111_0000;
         chip.registers[0xF] = 0b0110_0000;
 
-        chip.decode(0x85F6);
+        chip.decode(0x8F06);
         assert_eq!(0, chip.registers[0xF]);
-        assert_eq!(0b0011_0000, chip.registers[0x5]);
     }
     #[test]
     fn test_8xy7_subtract_vx_from_vy_vy_is_bigger() {
@@ -843,48 +829,40 @@ mod tests {
         assert_eq!(1, chip.registers[0xF]);
     }
     #[test]
-    fn test_8xye_store_vy_shifted_left_in_vx_lsb_1() {
+    fn test_8xye_shift_vx_left_lsb_1() {
         let mut chip = Chip8::new();
         chip.registers[0xF] = 0;
-        chip.registers[0x5] = 0b1111_0000;
         chip.registers[0x6] = 0b0110_0001;
 
-        chip.decode(0x856E);
+        chip.decode(0x860E);
         assert_eq!(1, chip.registers[0xF]);
-        assert_eq!(0b0110_0001, chip.registers[0x6]);
-        assert_eq!(0b1100_0010, chip.registers[0x5]);
+        assert_eq!(0b1100_0010, chip.registers[0x6]);
     }
     #[test]
-    fn test_8xye_store_vy_shifted_left_in_vx_lsb_0() {
+    fn test_8xye_shift_vx_left_lsb_0() {
         let mut chip = Chip8::new();
         chip.registers[0xF] = 0;
-        chip.registers[0x5] = 0b1111_0000;
         chip.registers[0x6] = 0b0110_0000;
 
-        chip.decode(0x856E);
+        chip.decode(0x860E);
         assert_eq!(0, chip.registers[0xF]);
-        assert_eq!(0b0110_0000, chip.registers[0x6]);
-        assert_eq!(0b1100_0000, chip.registers[0x5]);
+        assert_eq!(0b1100_0000, chip.registers[0x6]);
     }
     #[test]
-    fn test_8xye_store_vy_shifted_left_in_vx_use_vf_lsb_1() {
+    fn test_8xye_shift_vx_left_use_vf_lsb_1() {
         let mut chip = Chip8::new();
-        chip.registers[0x5] = 0b1111_0000;
         chip.registers[0xF] = 0b0110_0001;
 
-        chip.decode(0x85FE);
+        chip.decode(0x8F0E);
         assert_eq!(1, chip.registers[0xF]);
-        assert_eq!(0b1100_0010, chip.registers[0x5]);
     }
     #[test]
-    fn test_8xye_store_vy_shifted_left_in_vx_use_vf_lsb_0() {
+    fn test_8xye_shift_vx_left_use_vf_lsb_0() {
         let mut chip = Chip8::new();
-        chip.registers[0x5] = 0b1111_0000;
         chip.registers[0xF] = 0b0110_0000;
 
-        chip.decode(0x85FE);
+        chip.decode(0x8F0E);
         assert_eq!(0, chip.registers[0xF]);
-        assert_eq!(0b1100_0000, chip.registers[0x5]);
     }
     #[test]
     fn test_bnnn_jump_to_address_plus_v0() {
