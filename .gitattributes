@@ -1,2 +1,5 @@
-*        text=auto
-*.png    binary
+*.rs	text
+*.lock	text
+*.toml	text
+*.org	text
+*.png	binary
