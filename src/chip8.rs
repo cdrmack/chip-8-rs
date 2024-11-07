@@ -58,6 +58,15 @@ impl Chip8 {
         }
     }
 
+    fn get_pressed_key(&self) -> (bool, usize) {
+        for (idx, val) in self.keypad.iter().enumerate() {
+            if *val == true {
+                return (true, idx);
+            }
+        }
+        (false, 0)
+    }
+
     pub fn load(&mut self, data: &[u8]) {
         for (i, &byte) in data.iter().enumerate() {
             let addr = 0x200 + i;
@@ -275,11 +284,14 @@ impl Chip8 {
             (0xF, x, 0, 7) => {
                 self.registers[x as usize] = self.delay_timer;
             }
-            // wait for VX key to be pressed
+            // wait for a keypress, store result in VX
             (0xF, x, 0, 0xA) => {
-                let vx = self.registers[x as usize];
-                if !self.keypad[vx as usize] {
+                let (found, key) = self.get_pressed_key();
+
+                if !found {
                     self.pc -= 2; // decrement, we want to loop this until key is pressed
+                } else {
+                    self.registers[x as usize] = key as u8;
                 }
             }
             // set delay timer to the value of VX
