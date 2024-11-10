@@ -60,7 +60,7 @@ impl Chip8 {
 
     fn get_pressed_key(&self) -> (bool, usize) {
         for (idx, val) in self.keypad.iter().enumerate() {
-            if *val == true {
+            if *val {
                 return (true, idx);
             }
         }

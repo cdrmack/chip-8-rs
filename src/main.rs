@@ -72,84 +72,35 @@ fn main() {
 fn handle_input(rl_handle: &mut RaylibHandle, chip: &mut Chip8) {
     chip.keypad = [false; 16];
 
-    chip.keypad[0x1] = if rl_handle.is_key_down(KeyboardKey::KEY_ONE) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0x2] = if rl_handle.is_key_down(KeyboardKey::KEY_TWO) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0x3] = if rl_handle.is_key_down(KeyboardKey::KEY_THREE) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0xC] = if rl_handle.is_key_down(KeyboardKey::KEY_FOUR) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0x4] = if rl_handle.is_key_down(KeyboardKey::KEY_Q) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0x5] = if rl_handle.is_key_down(KeyboardKey::KEY_W) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0x6] = if rl_handle.is_key_down(KeyboardKey::KEY_E) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0xD] = if rl_handle.is_key_down(KeyboardKey::KEY_R) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0x7] = if rl_handle.is_key_down(KeyboardKey::KEY_A) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0x8] = if rl_handle.is_key_down(KeyboardKey::KEY_S) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0x9] = if rl_handle.is_key_down(KeyboardKey::KEY_D) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0xE] = if rl_handle.is_key_down(KeyboardKey::KEY_F) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0xA] = if rl_handle.is_key_down(KeyboardKey::KEY_Z) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0x0] = if rl_handle.is_key_down(KeyboardKey::KEY_X) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0xB] = if rl_handle.is_key_down(KeyboardKey::KEY_C) {
-        true
-    } else {
-        false
-    };
-    chip.keypad[0xF] = if rl_handle.is_key_down(KeyboardKey::KEY_V) {
-        true
-    } else {
-        false
-    };
+    chip.keypad[0x1] = rl_handle.is_key_down(KeyboardKey::KEY_ONE);
+
+    chip.keypad[0x2] = rl_handle.is_key_down(KeyboardKey::KEY_TWO);
+
+    chip.keypad[0x3] = rl_handle.is_key_down(KeyboardKey::KEY_THREE);
+
+    chip.keypad[0xC] = rl_handle.is_key_down(KeyboardKey::KEY_FOUR);
+
+    chip.keypad[0x4] = rl_handle.is_key_down(KeyboardKey::KEY_Q);
+
+    chip.keypad[0x5] = rl_handle.is_key_down(KeyboardKey::KEY_W);
+
+    chip.keypad[0x6] = rl_handle.is_key_down(KeyboardKey::KEY_E);
+
+    chip.keypad[0xD] = rl_handle.is_key_down(KeyboardKey::KEY_R);
+
+    chip.keypad[0x7] = rl_handle.is_key_down(KeyboardKey::KEY_A);
+
+    chip.keypad[0x8] = rl_handle.is_key_down(KeyboardKey::KEY_S);
+
+    chip.keypad[0x9] = rl_handle.is_key_down(KeyboardKey::KEY_D);
+
+    chip.keypad[0xE] = rl_handle.is_key_down(KeyboardKey::KEY_F);
+
+    chip.keypad[0xA] = rl_handle.is_key_down(KeyboardKey::KEY_Z);
+
+    chip.keypad[0x0] = rl_handle.is_key_down(KeyboardKey::KEY_X);
+
+    chip.keypad[0xB] = rl_handle.is_key_down(KeyboardKey::KEY_C);
+
+    chip.keypad[0xF] = rl_handle.is_key_down(KeyboardKey::KEY_V);
 }
